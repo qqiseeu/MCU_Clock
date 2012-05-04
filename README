@@ -1,0 +1,7 @@
+使用STC59C52RC芯片实现的电子钟，分为下列几个部分：
+（1）clock.c：主函数
+（2）clock_increase.c：计时并计算对应的时间
+（3）clock_lcd.c：将时间显示在lcd屏上
+（4）clock_I2C.c：每30s向EEPROM写入一次当前时间，实现掉电保护
+（5）clock_keyboard.c：读取键盘动作
+（6）clock_ser.c：通过串口与PC同步时间
