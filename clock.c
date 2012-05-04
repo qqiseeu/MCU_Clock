@@ -31,7 +31,7 @@ int main(void)
                     num_min = 0;
                     I2C_writetime(time);
                 }
-            
+
             switch (keyscan())
                 {
                 case RUNNING:
