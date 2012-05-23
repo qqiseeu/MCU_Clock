@@ -8,8 +8,10 @@
 #include "myincrease.h"
 
 UCHAR time[T_LENGTH];
+UCHAR uart_temp[T_LENGTH] = "201205163220000";
 UCHAR Recv;
-bit SerBegin = 0;    //判断是否开始接收数据
+bit   SerBegin = 0;             //判断是否开始接收数据
+bit NewRecv = 0;           //收到新数据时置位
 bit tickn = 1;      //tickn=1表示经过1秒时间
 bit runflag = 1;      //runflag=1表示时钟正在计时
 bit serflag = 0;      //serflag=1表示串口打开
@@ -31,7 +33,7 @@ int main(void)
                     num_min = 0;
                     I2C_writetime(time);
                 }
-
+            
             switch (keyscan())
                 {
                 case RUNNING:
@@ -44,14 +46,14 @@ int main(void)
                             lcd_disp(time, pos, runflag);
                         }
                     if (serflag == 1)
-                        UART_SyncTime(time);
+                        UART_SyncTime(time, uart_temp);
                     break;
                 case PAU_STA:   //用于暂停或继续      
                     if (serflag == 0)
                         {
                             if (runflag == 0)
                                 if (!IsLegal(time)) //每次暂停后时间可能被修改，需检查合法性
-                                    break;
+                                    break;            //若时间不合法则无法再次启动
                             runflag = ~runflag;
                             TR0     = ~TR0;
                             lcd_disp(time, pos, runflag);
@@ -88,7 +90,10 @@ int main(void)
                     serflag = ~serflag;
                     DIOLA   = 1;
                     if (serflag == 1)
-                        P1 = 0xaa;
+                        {
+                            P1       = 0xaa;
+                            SerBegin = 0;
+                        }
                     else
                         P1  = 0xff;
                     DIOLA = 0;
@@ -143,8 +148,9 @@ void T0_time(void) interrupt 1
 
 void ser(void) interrupt 4
 {
-    RI           = 0;
-    Recv         = SBUF;
+    RI   = 0;
+    Recv = SBUF;
+    NewRecv = 1;
     if (Recv == '$')
         SerBegin = ~SerBegin;
 }
